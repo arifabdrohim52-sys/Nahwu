@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <title>Test Nahwu: Mu'rab & Mabni</title>
+    <meta name="description" content="Uji pemahaman Nahwu (Mu'rab, dan Mabni) secara interaktif.">
+    <meta property="og:title" content="Tes Pemahaman Nahwu: Mu'rab & Mabni">
+    <meta property="og:description" content="Ayo uji kemampuan Nahwu antum dengan kuis interaktif ini!">
+    <meta property="og:image" content="https://arifabdrohim52-sys.github.io/Nahwu/1.png">
+    <meta property="og:url" content="https://arifabdrohim52-sys.github.io/Nahwu/Nahwu.html">
+    <meta property="og:type" content="website">
+
+    <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        body { font-family: 'Poppins', sans-serif; background:#f4f6f8; margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+        .quiz-container { width:95%; max-width:700px; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.15); overflow:hidden; background:#fff; }
+        .hidden { display:none; }
+        .progress { height:8px; background:#eee; border-radius:10px; overflow:hidden; margin-bottom:10px; }
+        .progress-bar { height:100%; background: linear-gradient(90deg,#00c6ff,#0072ff); width:0%; transition:width .3s ease; }
+        .timer-wrapper { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        #timer-display { font-weight: bold; font-size: 1.1rem; padding: 4px 12px; border-radius: 20px; background: #fee2e2; color: #ef4444; }
+        .arab { font-family: 'Amiri', serif; direction: rtl; unicode-bidi: embed; font-size: 1.3em; display: inline-block; padding: 0 4px; }
+        .answers button { display: block; width: 100%; margin: 8px 0; padding: 14px; border: 2px solid #3498db; background: #fff; border-radius: 12px; cursor: pointer; text-align: left; transition: .25s; outline: none; }
+        .answers button.correct { background: #2ecc71 !important; color: #fff !important; border-color: #27ae60 !important; }
+        .answers button.wrong { background: #e74c3c !important; color: #fff !important; border-color: #c0392b !important; }
+        .explanation { background:#f0f8ff; border-left:4px solid #0078ff; padding:15px; border-radius:10px; margin-top:15px; font-size:14px; }
+        
+        /* Warna Skor */
+        .bg-score-mumtaz { background-color: #16a34a !important; }
+        .bg-score-jayyid-jiddan { background-color: #2563eb !important; }
+        .bg-score-jayyid { background-color: #ca8a04 !important; }
+        .bg-score-maqbul { background-color: #ea580c !important; }
+        .bg-score-rasib { background-color: #dc2626 !important; }
+
+        /* Highlight User di Raport */
+        .user-highlight { border: 2px solid #2563eb; background-color: #eff6ff !important; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="intro" style="position:relative;text-align:center;">
+        <img src="./1.png" alt="Sampul" style="width:100%;max-width:700px;display:block;margin:auto;filter:brightness(60%);">
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,0.85);backdrop-filter:blur(8px);padding:30px;border-radius:20px;width:84%;max-width:420px;">
+            <h1 class="text-xl font-bold mb-2 text-gray-800">Tes Mu'rab & Mabni</h1>
+            <input type="text" id="name" placeholder="Nama Antum" class="w-full p-3 mb-3 rounded-xl border border-gray-300 outline-none">
+            <input type="text" id="region" placeholder="Daerah Antum" class="w-full p-3 mb-4 rounded-xl border border-gray-300 outline-none">
+            <button id="btnStart" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition">Mulai Test</button>
+        </div>
+    </div>
+
+    <div id="quiz" class="hidden p-6">
+        <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+        <div class="timer-wrapper">
+            <span id="question-label" class="text-blue-600 font-bold uppercase text-xs"></span>
+            <div id="timer-display">⏱️ <span id="time-left">20</span>s</div>
+        </div>
+        <div id="question-container"></div>
+        <div class="text-center mt-6">
+            <button id="nextBtn" class="hidden px-10 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-md">Lanjut ➡️</button>
+        </div>
+    </div>
+
+    <div id="result" class="hidden p-8 text-center bg-white">
+        <h1 class="text-2xl font-bold mb-4 uppercase text-gray-800">🎖️ Hasil Nilai</h1>
+        <div class="flex justify-center mb-6">
+            <div id="scoreCircle" class="w-24 h-24 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-xl transition-all duration-500">0</div>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-xl mb-4 text-left text-sm space-y-1">
+            <div class="flex justify-between"><span>Nama:</span><span id="resName" class="font-bold"></span></div>
+            <div class="flex justify-between"><span>Daerah:</span><span id="resRegion" class="font-bold"></span></div>
+            <div class="flex justify-between"><span>Nilai:</span><span id="resQual" class="font-bold"></span></div>
+        </div>
+        <p id="resComment" class="italic text-sm text-gray-700 mb-6"></p>
+        <div id="loadingText" class="text-xs text-blue-500 animate-pulse mb-4 text-center">Tunggu. Memproses raport...</div>
+        <div class="flex flex-col gap-2">
+            <button id="btnRaport" disabled class="px-6 py-3 bg-green-500 disabled:bg-gray-300 text-white font-bold rounded-xl shadow-md">📊 Lihat Raport Teman</button>
+            <button onclick="location.reload()" class="text-sm text-gray-500 mt-2">🔁 Ulangi Dari Awal</button>
+        </div>
+    </div>
+
+    <div id="raportPage" class="hidden p-6 bg-white min-h-[500px]">
+        <h1 class="text-xl font-bold mb-4 text-center underline decoration-blue-500">📖 Raport Peserta</h1>
+        <div id="raportList" class="space-y-2 max-h-[350px] overflow-y-auto pr-2 text-sm"></div>
+        <button id="btnBackToResult" class="w-full mt-6 py-3 bg-gray-800 text-white rounded-xl">Kembali</button>
+    </div>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyVhUYG_3DcR_WdDyqJ0dF6VWQpD1k6JPkFUJ1d5qzAGDEwaLMKHJ50OZn5THAV-aMS8A/exec";
+
+const questions = [
+    { q: "Perhatikan kalimat: رُونَالدو لَاعِبٌ (Ronaldo adalah pemain). Apa jenis i'rab kata 'Ronaldo'?", options: ["I'rab mahalli", "I'rab taqdiri", "I'rab Lafdzi", "Tidak punya i'rab"], a: 1, exp: "Kata رُونَالدو adalah tidak isim mabni tetapi isim mu'rab, namun karena akhirannya tidak bisa menerima harakat secara tampak, maka i'rabnya disebut <b>Taqdiri</b>." },
+    { q: "Dalam frasa لَنْ يَنَامَ (Lan yanama), tanda nashab pada kata 'Yanam' adalah...", options: ["Fathah Zhahirah", "Fathah Muqaddarah"], a: 0, exp: "Harakat fathah bisa muncul secara jelas (zhahirah) karena huruf akhirnya Mim (huruf shahih)." },
+    { q: "Kata قَاضٍ (Qadin) termasuk dalam kategori isim apa?", options: ["Isim Shahih", "Isim Mu'tal"], a: 1, exp: "Karena asalnya memiliki huruf illah di akhirnya (الـقاضي)." },
+    { q: "Ditinjau dari jenisnya, kata قَاضٍ (Qadin) adalah Isim...", options: ["Isim Manqush", "Isim Maqshur"], a: 0, exp: "<b>Isim Manqush</b> adalah isim mu'rab yang berakhiran Ya lazimah dan huruf sebelumnya kasrah." },
+    { q: "Dalam kalimat 'جَلَسَ مُحَمَّدٌ عَلَى الكُرْسِي', apakah huruf (على) memiliki mahal i'rab?", options: ["Memiliki mahal i'rab", "Tidak memiliki mahal i'rab"], a: 1, exp: "Semua jenis huruf (harf) bersifat mabni dan tidak memiliki kedudukan (mahal) dalam i'rab." },
+    { q: "Kata يَكْتُبُنَّ (Yaktubunna) berstatus...", options: ["Mu'rab", "Mabni"], a: 0, exp: "Tetap <b>Mu'rab</b> karena ada pemisah berupa Wawu Jama'ah yang tersembunyi/dibuang." },
+    { q: "Kata يَكْتُبَانِّ (Yaktubanni) berstatus...", options: ["Mu'rab", "Mabni"], a: 0, exp: "Ada pemisah nyata berupa Alif Itsnain, sehingga fi'il tetap Mu'rab." },
+    { q: "Kata يَدْخُلْنَ (Yadkhulna) berstatus...", options: ["Mu'rab", "Mabni"], a: 1, exp: "Fi'il mudhari yang bertemu Nun Niswah selalu <b>Mabni</b> di atas sukun." },
+    { q: "Pada kata جَلَسُوْا (Jalasuu), fi'il madhi tersebut mabni dengan harakat...", options: ["Wawu", "Dhammah", "Sukun"], a: 1, exp: "Fi'il madhi menjadi mabni dhammah ketika bertemu Wawu Jama'ah, dhammah dilihat dari harakat terakhir yaitu huruf sin." },
+    { q: "Kata kerja perintah (Fi'il Amr) seperti اُدْخُلْ (Udkhul) berstatus...", options: ["Mu'rab", "Mabni"], a: 1, exp: "Sesuai kaidah dasar, semua <b>fi'il amr selalu mabni</b>." },
+    { q: "Apakah i'rab Jarr bisa masuk ke dalam Fi'il?", options: ["Bisa", "Tidak bisa"], a: 1, exp: "I'rab Jarr adalah kekhususan bagi Isim saja." },
+    { q: "Apakah cara meng-i'rab kata yang Mabni sama dengan kata yang Mu'rab?", options: ["Sama saja", "Berbeda"], a: 1, exp: "Kata mu'rab langsung disebut posisi dan statusnya, sedangkan kata mabni harus disebut jenis kata dan tanda binanya dulu, baru kemudian posisinya (fii mahalli...)." },
+    { q: "Mabninya fi'il mudhari bisa dengan hal-hal berikut, KECUALI...", options: ["Fathah", "Sukun", "Dhammah"], a: 2, exp: "Fi'il mudhari hanya bisa mabni fathah atau sukun." },
+    { q: "Ketika kata الْفَتَى (Al-Fata) berada dalam posisi Nashab, bagaimanakah tanda i'rabnya?", options: ["Zhair", "Muqaddar", "Mahalli"], a: 1, exp: "Tanda i'rabnya <b>Muqaddar</b> karena dia isim maqsur." }
+];
+
+let currentQuestion = 0, score = 0, userName = '', userRegion = '', countdown, timeLeft = 20, allData = [];
+
+function formatArabic(text){ return text.replace(/([\u0600-\u06FF\s]+)/g, '<span class="arab">$1</span>'); }
+
+function getCategoryData(p) {
+    if(p >= 90) return { qual: "Mumtaz", color: "text-green-600", bg: "bg-score-mumtaz" };
+    if(p >= 80) return { qual: "Jayyid Jiddan", color: "text-blue-600", bg: "bg-score-jayyid-jiddan" };
+    if(p >= 65) return { qual: "Jayyid", color: "text-yellow-600", bg: "bg-score-jayyid" };
+    if(p >= 50) return { qual: "Maqbul", color: "text-orange-600", bg: "bg-score-maqbul" };
+    return { qual: "Rasib", color: "text-red-600", bg: "bg-score-rasib" };
+}
+
+document.getElementById('btnStart').onclick = () => {
+    userName = document.getElementById('name').value.trim();
+    userRegion = document.getElementById('region').value.trim();
+    if(!userName || !userRegion) return alert("Silakan isi nama dan daerah antum!");
+    document.getElementById('intro').classList.add('hidden');
+    document.getElementById('quiz').classList.remove('hidden');
+    loadQuestion();
+};
+
+function loadQuestion() {
+    clearInterval(countdown);
+    timeLeft = 20;
+    document.getElementById('time-left').innerText = timeLeft;
+    const q = questions[currentQuestion];
+    document.getElementById('question-label').innerText = `Soal ${currentQuestion+1} / ${questions.length}`;
+    document.getElementById('question-container').innerHTML = `
+        <div class="mb-5"><h2 class="text-lg font-semibold">${formatArabic(q.q)}</h2></div>
+        <div class="answers">${q.options.map((opt,i)=>`<button onclick="selectAnswer(${i})">${formatArabic(opt)}</button>`).join('')}</div>
+        <div class="explanation hidden" id="exp"><strong>Keterangan:</strong><br>${formatArabic(q.exp)}</div>
+    `;
+    document.getElementById('progress-bar').style.width = (currentQuestion / questions.length * 100) + '%';
+    document.getElementById('nextBtn').classList.add('hidden');
+    
+    countdown = setInterval(() => {
+        timeLeft--;
+        document.getElementById('time-left').innerText = timeLeft;
+        if(timeLeft <= 0) { clearInterval(countdown); selectAnswer(-1); }
+    }, 1000);
+}
+
+window.selectAnswer = (idx) => {
+    clearInterval(countdown);
+    const q = questions[currentQuestion];
+    const btns = document.querySelectorAll('.answers button');
+    btns.forEach((b, i) => {
+        b.disabled = true;
+        if(i === q.a) b.classList.add('correct');
+        if(i === idx && idx !== q.a) b.classList.add('wrong');
+    });
+    if(idx === q.a) score++;
+    document.getElementById('exp').classList.remove('hidden');
+    document.getElementById('nextBtn').classList.remove('hidden');
+};
+
+document.getElementById('nextBtn').onclick = () => {
+    currentQuestion++;
+    if(currentQuestion < questions.length) loadQuestion();
+    else showResult();
+};
+
+async function showResult() {
+    document.getElementById('quiz').classList.add('hidden');
+    document.getElementById('result').classList.remove('hidden');
+    
+    const p = Math.round((score / questions.length) * 100);
+    const cat = getCategoryData(p);
+    
+    document.getElementById('resName').innerText = userName;
+    document.getElementById('resRegion').innerText = userRegion;
+    document.getElementById('resQual').innerText = cat.qual;
+    document.getElementById('resQual').className = "font-bold " + cat.color;
+
+    const sc = document.getElementById('scoreCircle');
+    sc.className = "w-24 h-24 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-xl transition-all duration-500 " + cat.bg;
+
+    let displayScore = 0;
+    const anim = setInterval(() => {
+        if(displayScore >= p) {
+            clearInterval(anim);
+            sc.innerText = p;
+            if(p >= 70) confetti();
+        } else {
+            displayScore++;
+            sc.innerText = displayScore;
+        }
+    }, 20);
+
+    try {
+        await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', body:JSON.stringify({name:userName, region:userRegion, score:p}) });
+        const res = await fetch(SCRIPT_URL);
+        const data = await res.json();
+        allData = (Array.isArray(data) ? data : (data.participants || []))
+            .map(item => ({
+                name: item[0] || item.name,
+                region: item[1] || item.region,
+                score: parseInt(item[2] || item.score) || 0
+            }))
+            .sort((a, b) => b.score - a.score);
+
+        renderRaport();
+        document.getElementById('btnRaport').disabled = false;
+        document.getElementById('loadingText').classList.add('hidden');
+    } catch (e) { document.getElementById('loadingText').innerText = "Gagal memuat raport."; }
+}
+
+function renderRaport() {
+    const raportList = document.getElementById('raportList');
+    raportList.innerHTML = allData.map((pData, i) => {
+        const cat = getCategoryData(pData.score);
+        const isUser = (pData.name === userName && pData.region === userRegion);
+        return `
+            <div class="flex justify-between items-center p-3 rounded-lg bg-gray-50 ${isUser ? 'user-highlight' : ''}">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-400">#${i+1}</span>
+                    <div>
+                        <p class="text-sm leading-none font-semibold">${pData.name}</p>
+                        <p class="text-[10px] text-gray-500">${pData.region}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-bold ${cat.color}">${pData.score}%</p>
+                    <p class="text-[9px] uppercase tracking-tighter text-gray-400">${cat.qual}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+document.getElementById('btnRaport').onclick = () => {
+    document.getElementById('result').classList.add('hidden');
+    document.getElementById('raportPage').classList.remove('hidden');
+};
+document.getElementById('btnBackToResult').onclick = () => {
+    document.getElementById('raportPage').classList.add('hidden');
+    document.getElementById('result').classList.remove('hidden');
+};
+</script>
+</body>
+</html>
